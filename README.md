@@ -7,3 +7,26 @@ Considering that I am using an AR model recently and am still kind of confused a
 I will try to write the code of the transformer from scratch as practice.
 
 ## Day 1: Start
+1. create the repository and learn some basic operations of 'git'
+2. create the virtual environment
+3. import some necessary modules, like pytorch.
+4. TODO list:
+    4.1 Define basic blocks: 
+        >> TokenEmbedding
+        >> Position Embedding
+        >> Multi-Head Attention
+        >> FeedForward (Position-wise MLP)
+        >> Norm (LayerNorm or RMSNorm)
+        >> Residual
+        >> Dropout
+    4.2 Define class
+        >> EncoderLayer
+        >> DecoderLayer
+        >> Encoder
+        >> Decoder
+        >> TransformerModel
+5. There are too many modules and class need to be implemented. So I decide to implement those mudules as the data-flow.
+    Encoder: input embedding ==> position embedding ==> MultiHead Attention ==> Add & Norm 
+             ==> Feed Forward ==> Add & Norm
+    Decoder: output embedding ==> position embedding ==> Masked MultiHead Attention ==> Add & Norm
+             ==> MultiHead Attention ==> Add & Norm ==> Feed Forward ==> Linear ==> Softmax
