@@ -30,3 +30,13 @@ I will try to write the code of the transformer from scratch as practice.
              ==> Feed Forward ==> Add & Norm
     Decoder: output embedding ==> position embedding ==> Masked MultiHead Attention ==> Add & Norm
              ==> MultiHead Attention ==> Add & Norm ==> Feed Forward ==> Linear ==> Softmax
+
+## Day 2: MultiHeadAttention
+I tried to hand-write the 'MultiHeadAttention' class. Not surprisingly, there are many many mistakes. However, that is the
+aim of this project.
+
+The mistakes or gains from this practice are as follow:
+    1. the usage of 'contiguous()'.
+    2. the smart method of create 'qkv_projection' at one time and chunk it as 3 sub-matrix when using.
+    3. 'T' can only be used in 2D tensor, while 'transpose()' is bulit for high dimension tensor.
+    4. Using 'map()' to divide Q, K, V into heads
