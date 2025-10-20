@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import math
 
 class SelfAttention():
@@ -70,7 +71,7 @@ class MultiHeadAttention(nn.Module):
         # 'bais = True' or 'bais = False' either works. 'bias = False' save parameters with negligible impact on quality
 
         
-        self.o_proj = nn.Linear(d_model, d_model)
+        self.o_proj = nn.Linear(d_model, d_model, bias = False)
 
     def forward(self, x:torch.Tensor):
         batch_size, seq_len, d_model = x.shape
@@ -119,7 +120,7 @@ class MultiHeadAttention(nn.Module):
         
         Modified Method:
         '''
-        attention_score = torch.softmax(attention_logits, dim=-1)
+        attention_score = F.softmax(attention_logits, dim=-1)
 
 
         attention_per_head = torch.matmul(attention_score, V_heads) # [B, num_heads, seq_len, d_head]
@@ -129,7 +130,7 @@ class MultiHeadAttention(nn.Module):
         '''
         Modified Method:
         '''
-        attention = attention_per_head.transpose(1,2).contiguous().view(batch_size, self.d_model)   # [B, seq_len, d_model]
+        attention = attention_per_head.transpose(1,2).contiguous().view(batch_size, seq_len, self.d_model)   # [B, seq_len, d_model]
 
 
         value = self.o_proj(attention)  ## [B, seq_len, d_model]
