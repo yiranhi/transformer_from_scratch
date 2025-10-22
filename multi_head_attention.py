@@ -193,7 +193,7 @@ class MultiHeadAttention(nn.Module):
 
         return value
 
-class MaskedMultiHeadAttention():
+class MaskedMultiHeadAttention(nn.Module):
     '''
         For Causal Model:
             the output at a certain position can only depend on the words on previous positions.
@@ -216,7 +216,7 @@ class MaskedMultiHeadAttention():
 
             2. Why mask is needed during inference?
                 because of the decoder only architecture, the output of decoder layer is tranfered into the next decoder layer.
-                
+
             
             3. The mask in training and inference are different.
                In Training:
@@ -247,5 +247,59 @@ class MaskedMultiHeadAttention():
                         At step n:
                             the mask is [1, n]
                             [0, 0 ... 0, ... 0]
-
     '''
+    def __init__(self, num_heads:int, d_model:int, attn_dropout:float=0.0, proj_dropout:float=0.0):
+        super().__init__()
+        assert d_model % num_heads == 0
+
+        self.num_heads = num_heads
+        self.d_model = d_model
+        self.d_head = d_model // num_heads
+
+        self.qkv_proj = nn.Linear(d_model, 3*d_model, bias = False)
+        self.o_proj = nn.Linear(d_model, d_model, bias = False)
+
+        self.attn_drop = nn.Dropout(attn_dropout)
+        self.proj_drop = nn.Dropout(proj_dropout)
+
+    def create_causal_mask(seq_len:int) -> torch.Tensor:
+        '''
+        Create a causal mask for attention.
+        Args:
+            seq_len: Length of sequence
+        Returns:
+            Causal Mask with shape of [seq_len, seq_len]
+        '''
+        mask = torch.triu(torch.full((seq_len, seq_len), float('-inf')), diagonal=1) # [seq_len, seq_len]
+        mask = mask.unsqueeze(0).unsqueeze(0)   # [1, 1, seq_len, seq_len]
+        return mask
+    
+    def forward(self, x:torch.Tensor):
+        batch_size, seq_len, d_model = x.shape
+        assert self.d_model == d_model
+
+        Q, K, V = self.qkv_proj(x).chunk(3, dim=-1) # [B, seq_len, d_model]
+
+        def to_heads(x):
+            return x.view(batch_size, seq_len, self.num_heads, self.d_head).transpose(1,2)
+        Q_heads, K_heads, V_heads = map(to_heads, (Q, K, V))    #[B ,num_heads, seq_len, d_heads]
+
+        attn_weights = torch.matmul(Q_heads, K_heads.transpose(-1, -2)) / math.sqrt(self.d_head)    # [B, num_heads, seq_len, seq_len]
+
+        causal_mask = self.create_causal_mask(seq_len)
+
+        attn_weights = attn_weights + causal_mask
+
+        attn_weights = torch.softmax(attn_weights, dim=-1)
+
+        attn_weights = self.attn_drop(attn_weights)
+
+        attn_per_head = torch.matmul(attn_weights, V_heads) # [B, num_heads, seq_len, d_heads]
+
+        attention = attn_per_head.transpose(1, 2).contiguous().view(batch_size, seq_len, self.d_model) # [B, seq_len, d_model]
+
+        attention = self.o_proj(attention)
+
+        attention = self.proj_drop(attention)
+
+        return attention
