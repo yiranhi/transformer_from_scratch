@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import math
 
-class SelfAttention():
+class SelfAttention(nn.Module):
     '''
         Note: input token sequence = Q = K = V (Q, K, V are just the copy of input token sequence)    
     
@@ -15,6 +15,45 @@ class SelfAttention():
         softmax(torch.dot(Q [6, 512], K.T [512, 6]) / troch.sqrt(512) ) ==> attention score[6, 6]
         torch.dot(attention score [6, 6], V [6, 512]) ==> attention [6, 512] 
     '''
+    def __init__(self, d_model:int, attn_dropout:float=0.0, proj_dropout:float=0.0):
+        super().__init__()
+        self.d_model = d_model
+
+        self.qkv_proj = nn.Linear(d_model, 3*d_model, bias=False)
+        self.o_proj = nn.Linear(d_model, d_model, bias=False)
+
+        '''
+        Error:
+            Don't forget dropout
+        '''
+        self.attn_dropout = nn.Dropout(attn_dropout)
+        self.proj_dropout = nn.Dropout(proj_dropout)
+
+    def forward(self, x:torch.Tensor):
+        batch_size, seq_len, d_model = x.shape    # [B, seq_len, d_model]
+        assert d_model == self.d_model
+
+        Q, K, V = self.qkv_proj(x).chunk(3, dim = -1)   # [B, seq_len, d_model]
+
+        attention_logits = torch.matmul(Q, K.transpose(-1, -2)) / math.sqrt(d_model)   # [B, seq_len, seq_len]
+        attention_weights = F.softmax(attention_logits, dim = -1)    # [B, seq_len, seq_len]
+
+        '''
+        Error:
+            dropout layer is placed between the softmax and multiply V
+        '''
+        attention_weights = self.attn_dropout(attention_weights)
+        attention = torch.matmul(attention_weights, V)   # [B, seq_len, d_model]
+
+        value = self.o_proj(attention)  # [B, seq_len, d_model]
+        '''
+        Error:
+            After output projection layer, there also should be a dropout layer
+        '''
+        value = self.proj_dropout(value)
+
+        return value
+
 
 class MultiHeadAttention(nn.Module):
     '''
@@ -41,7 +80,7 @@ class MultiHeadAttention(nn.Module):
         torch.dot(concatenate_attention [6, 512], W_o [512, 512]) ==> multi-head attention [6, 512]
     '''
 
-    def __init__(self, num_heads:int, d_model:int):
+    def __init__(self, num_heads:int, d_model:int, attn_dropout:float=0.0, proj_dropout:float=0.0):
         super().__init__()
         # assert d_model // num_heads == 0
         '''
@@ -73,8 +112,16 @@ class MultiHeadAttention(nn.Module):
         
         self.o_proj = nn.Linear(d_model, d_model, bias = False)
 
+        '''
+        Error:
+            Don't forget dropout
+        '''
+        self.attn_drop = nn.Dropout(attn_dropout)
+        self.proj_drop = nn.Dropout(proj_dropout)
+
     def forward(self, x:torch.Tensor):
         batch_size, seq_len, d_model = x.shape
+        assert d_model == self.d_model
 
         # Q = self.qkv_proj(x)    # [B, seq_len, d_model]
         # K = self.qkv_proj(x)    # [B, seq_len, d_model]
@@ -122,6 +169,10 @@ class MultiHeadAttention(nn.Module):
         '''
         attention_score = F.softmax(attention_logits, dim=-1)
 
+        '''
+        Dropout
+        '''
+        attention_score = self.attn_drop(attention_score)
 
         attention_per_head = torch.matmul(attention_score, V_heads) # [B, num_heads, seq_len, d_head]
 
@@ -134,6 +185,11 @@ class MultiHeadAttention(nn.Module):
 
 
         value = self.o_proj(attention)  ## [B, seq_len, d_model]
+
+        '''
+        Dropout
+        '''
+        value = self.proj_drop(value)
 
         return value
 
@@ -152,4 +208,44 @@ class MaskedMultiHeadAttention():
             | 3.5  2.4  9.2  -inf |
             | 7.8  3.3  8.4   4.9 |
               ____ ____ ____ ____
+        
+        Mask (in GPT-like decoder-only model):
+            1. Mask is need in both training and inference (as long as you generate using a GPT-like model starting from
+               a prompt, you will need the mask during inference). Although they have different shape, they have the same 
+               function, i.e. prevent the decoder state from attending to position that corresponding to the tokens 'in the future'.
+
+            2. Why mask is needed during inference?
+                because of the decoder only architecture, the output of decoder layer is tranfered into the next decoder layer.
+                
+            
+            3. The mask in training and inference are different.
+               In Training:
+                    the whole sequence is put into the model and do only a forward(), so the mask is fixed with a shape
+                    of [B, num_heads, seq_len, seq_len], like following:
+                    _________________________
+                    | 0  -inf ... -inf -inf |
+                    | 0   0   ... -inf -inf |
+                    |         ...           |
+                    | 0   0   ...   0  -inf |
+                    | 0   0   ...   0    0  |
+                    ------------------------- 
+              In Inference:
+                    however, the model predicts tokens one by one during inference. So the model will have n (n > t, t is the input seqence length) times forward().
+                    In other words, the causal mask "gets longer" as the sequence grows.
+                    	At step 1 (first generated token):
+                            query attends only to the first key/value → the mask length = 1.
+                            [0]
+                        At step 2:
+                            the new query attends to 2 past tokens → the effective mask length = 2.
+                            [0, 0]
+                        ...
+                        At step t:
+                            the query attends to t tokens (all previous context).
+                            So the shape of the attention mask row for the new token is [1, kv_len], where kv_len = t grows with the sequence.
+                            [0, 0 ... 0]
+                        ...
+                        At step n:
+                            the mask is [1, n]
+                            [0, 0 ... 0, ... 0]
+
     '''

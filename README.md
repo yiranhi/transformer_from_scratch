@@ -40,3 +40,19 @@ The mistakes or gains from this practice are as follow:
     2. the smart method of create 'qkv_projection' at one time and chunk it as 3 sub-matrix when using.
     3. 'T' can only be used in 2D tensor, while 'transpose()' is bulit for high dimension tensor.
     4. Using 'map()' to divide Q, K, V into heads
+
+## Day 3: Mask in train and inference
+Considering I have finished building 'SelfAttention' class and 'MultiHeadAttention' class yesterday, I try to finish the 
+'MaskedMUltiHeadAttention' one. The mask used in 'training' is easy to understand. Because the input sequence contains all
+the information, and you have to prevent the decoder state from attending to the position that corresponding to the tokens
+'in the future'. In other word, 'peek ahead'.
+
+However,It's kind of confused for me to understand the mask used in 'inference'. I believe the mask should be used during
+inference, although I haven't find the perfect way to explain it.
+(This video 'Masking During Transformer Inference Matters a Lot (Buy Why?) - YouTube' doesn't really let me understand the 
+principle behind the inference mask.)
+
+Somebody says that KV cache is the key point of understranding the mask in infernece.
+If you are interested in KV cache, please refer to (https://huggingface.co/blog/not-lain/kv-caching)
+
+## Day 4: KV cache
