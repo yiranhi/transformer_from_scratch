@@ -57,6 +57,11 @@ Somebody says that **KV cache** is the key point of understranding the mask in i
 It solves recomputation by storing the attnetion from previous steps.
 
 If you are interested in KV cache, please refer to (https://huggingface.co/blog/not-lain/kv-caching)
+
+*update:* I tried to understand the **'mask in inference'** from another prospective. In Decoder-only architecture like GPT, they remove the **'multi-Head Attention'** because they don't have encoder's output. And in GPT-like models, they have a sequence as input. However, the docoder have to do *n* times forward and predict tokens one by one, which means at least before the last token in input sequence was generated, the decoder still does **teacher forcing** as training. So the mask is needed in inference.
+
+*Note:* This is my opinion about mask in inference. I am not sure it's correct or not. Please leave your comments and let's have deeper understanding about this question.
+
 ## Day 4: The Implement of 'MaskedMultiHeadAttention'
 The class **SelfAttention**, **MultiHeadAttention** and **MaskedMultiHeadAttention** are in the *multi_head_attention.py*.
 
@@ -69,4 +74,33 @@ args:<br>
 &emsp;&emsp;*diagonal=0*, all elements on and above the main diagonal are retained.<br> 
 &emsp;&emsp;*diagonal=1*, the elements above the main diagonal are retained.<br> 
 &emsp;&emsp;*diagonal=-1*, the elements below the main diafonal are retained.<br>
+## Day 5: Add & Norm
+*Add* means residual connection, which solves the vanishing gradient problem allowing deeper model. (More detail about Residual, see (https://arxiv.org/abs/1512.03385)) Residual connection has almost become a default setting for models.
 
+*Normalization* is another technique used to stabilize and accelerate training process. Transformer uses **Layer Norm**.
+
+However, there are 3 main normalization methods mostly used: Layer Norm, Batch Norm, RMS Norm.<br>
+&emsp;*Layer Norm*: compute the mean and variance for each sample. It's done over batch dimenson. (Note: It is used for each sample, so the difference of samples in batch doesn't affect its performance making it suitable for NLP)
+&emsp;&emsp;*Example:*
+    # NLP
+    batch, sentence_length, embedding_dim = input.shape
+    layer_norm = nn.LayerNorm(embedding_dim)
+    layer_norm(input)
+    
+    # Image
+    B, C, H, W = input.shape
+    layer_norm = nn.LayerNorm([C, H, W])
+    layer_norm(input)
+
+&emsp;*Batch Norm*: compute the mean and variance for each feature. It is done over C dimension cross all batch. 
+&emsp;&emsp;*Example:*
+    # Image
+    B, C, H, W = input.shape
+    batch_norm = nn.BatchNorm2d(C)
+    batch_norm(input)
+![](/Users/yiran/MyCode/transformer_from_scratch/images/Norm.png Normalization)
+
+## Day 5: Feed-Forward 
+
+
+## Day 6: Position Embedding & Input Embedding
