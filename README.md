@@ -82,23 +82,27 @@ args:<br>
 However, there are 3 main normalization methods mostly used: Layer Norm, Batch Norm, RMS Norm.<br>
 &emsp;*Layer Norm*: compute the mean and variance for each sample. It's done over batch dimenson. (Note: It is used for each sample, so the difference of samples in batch doesn't affect its performance making it suitable for NLP)
 &emsp;&emsp;*Example:*
+
     # NLP
     batch, sentence_length, embedding_dim = input.shape
     layer_norm = nn.LayerNorm(embedding_dim)
     layer_norm(input)
-    
+
     # Image
     B, C, H, W = input.shape
     layer_norm = nn.LayerNorm([C, H, W])
     layer_norm(input)
 
+
 &emsp;*Batch Norm*: compute the mean and variance for each feature. It is done over C dimension cross all batch. 
 &emsp;&emsp;*Example:*
+
     # Image
     B, C, H, W = input.shape
     batch_norm = nn.BatchNorm2d(C)
     batch_norm(input)
-![](/Users/yiran/MyCode/transformer_from_scratch/images/Norm.png Normalization)
+
+![norm picture](/Users/yiran/MyCode/transformer_from_scratch/images/Norm.png Normalization)
 
 ## Day 5: Feed-Forward 
 
