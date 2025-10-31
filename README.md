@@ -102,7 +102,7 @@ However, there are 3 main normalization methods mostly used: Layer Norm, Batch N
     batch_norm = nn.BatchNorm2d(C)
     batch_norm(input)
 
-![norm picture](/Users/yiran/MyCode/transformer_from_scratch/images/Norm.png "Normalization")
+![norm picture](./transformer_from_scratch/images/Norm.png "Normalization")
 
 ## Day 5: Feed-Forward 
 
