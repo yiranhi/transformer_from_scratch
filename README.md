@@ -67,20 +67,23 @@ The class **SelfAttention**, **MultiHeadAttention** and **MaskedMultiHeadAttenti
 
 To create a causal mask, you will need 2 helper functions - **'torch.full()'** and **'torch.triu()'**
 
-**'torch.triu(input, diagonal=0, *, out=None)'**<br>
-function: returns the upper triangular part of a matrix (2D tensor) or batch of matrics *input*, the other elements are set as *out*, 0 as default.<br>
-args:<br>
-&emsp;diagonal:<br> 
-&emsp;&emsp;*diagonal=0*, all elements on and above the main diagonal are retained.<br> 
-&emsp;&emsp;*diagonal=1*, the elements above the main diagonal are retained.<br> 
-&emsp;&emsp;*diagonal=-1*, the elements below the main diafonal are retained.<br>
-## Day 5: Add & Norm
-*Add* means residual connection, which solves the vanishing gradient problem allowing deeper model. (More detail about Residual, see (https://arxiv.org/abs/1512.03385)) Residual connection has almost become a default setting for models.
+    torch.triu(input, diagonal=0, *, out=None)
+        function: returns the upper triangular part of a matrix (2D tensor) or batch of matrics *input*, the other elements are set as *out*, 0 as default.
 
-*Normalization* is another technique used to stabilize and accelerate training process. Transformer uses **Layer Norm**.
+        args:
+            diagonal:
+                diagonal=0, all elements on and above the main diagonal are retained. 
+                diagonal=1, the elements above the main diagonal are retained.
+                diagonal=-1, the elements below the main diafonal are retained.
+
+
+## Day 5: Add & Norm
+***Add*** means residual connection, which solves the vanishing gradient problem allowing deeper model. (More detail about Residual, see (https://arxiv.org/abs/1512.03385)) Residual connection has almost become a default setting for models.
+
+***Normalization*** is another technique used to stabilize and accelerate training process. Transformer uses **Layer Norm**.
 
 However, there are 3 main normalization methods mostly used: Layer Norm, Batch Norm, RMS Norm.<br>
-&emsp;*Layer Norm*: compute the mean and variance for each sample. It's done over batch dimenson. (Note: It is used for each sample, so the difference of samples in batch doesn't affect its performance making it suitable for NLP)
+&emsp;*Layer Norm*: normalizes all features within each sample, which eliminates the magnitude difference between different samples but preserves the relative magnitude relationships between different features within a single sample. (Commonly used in the field of NLP)
 &emsp;&emsp;*Example:*
 
     # NLP
@@ -94,7 +97,8 @@ However, there are 3 main normalization methods mostly used: Layer Norm, Batch N
     layer_norm(input)
 
 
-&emsp;*Batch Norm*: compute the mean and variance for each feature. It is done over C dimension cross all batch. 
+&emsp;*Batch Norm*: normalizes each features across all samples in a batch, which eliminates the magnitude differences between different features but preserves the relative magnitude relationships between different samples. (Commonly used in the field of CV)<br>
+(*Note*: **momentum** is a hyperparameter that creates the mean and var for the whole training set. I will explain it in the code [norm](./norm.py))
 &emsp;&emsp;*Example:*
 
     # Image
@@ -102,7 +106,17 @@ However, there are 3 main normalization methods mostly used: Layer Norm, Batch N
     batch_norm = nn.BatchNorm2d(C)
     batch_norm(input)
 
-![norm picture](./transformer_from_scratch/images/Norm.png "Normalization")
+&emsp;*RMS Norm*: is a simplization of Layer Norm. It's taken over the last dimensions.
+
+Note: **register_buffer('name', tensor)**
+If you have parameters in your model, which should be saved and restored in 'state_dict', but not trained by the optimizer, you should regiseter them as buffer.
+
+As the 'momentum' in batch norm, which updates with the mean and var from mini-batch, doesn't depend on optimizer.
+
+Note:
+Remeber to care about the dimension of mean, var, weights, bias. Make sure they can be broadcasted to the same dimension of input.
+
+![norm picture1](./images/norm.png "Normalization1")
 
 ## Day 5: Feed-Forward 
 
