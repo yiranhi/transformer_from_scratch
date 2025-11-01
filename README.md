@@ -83,7 +83,7 @@ To create a causal mask, you will need 2 helper functions - **'torch.full()'** a
 ***Normalization*** is another technique used to stabilize and accelerate training process. Transformer uses **Layer Norm**.
 However, there are 3 main normalization methods mostly used: Layer Norm, Batch Norm, RMS Norm.<br>
 
-&emsp;*Layer Norm*: normalizes all features within each sample, which eliminates the magnitude difference between different samples but preserves the relative magnitude relationships between different features within a single sample. (Commonly used in the field of NLP)<br>
+&emsp;***Layer Norm***: normalizes all features within each sample, which eliminates the magnitude difference between different samples but preserves the relative magnitude relationships between different features within a single sample. (Commonly used in the field of NLP)<br>
 &emsp;&emsp;*Example:*
 
     # NLP
@@ -97,7 +97,7 @@ However, there are 3 main normalization methods mostly used: Layer Norm, Batch N
     layer_norm(input)
 
 
-&emsp;*Batch Norm*: normalizes each features across all samples in a batch, which eliminates the magnitude differences between different features but preserves the relative magnitude relationships between different samples. (Commonly used in the field of CV)<br>
+&emsp;***Batch Norm***: normalizes each features across all samples in a batch, which eliminates the magnitude differences between different features but preserves the relative magnitude relationships between different samples. (Commonly used in the field of CV)<br>
 (*Note*: **momentum** is a hyperparameter that creates the mean and var for the whole training set. I will explain it in the code [norm](./norm.py))<br>
 &emsp;&emsp;*Example:*
 
@@ -106,12 +106,12 @@ However, there are 3 main normalization methods mostly used: Layer Norm, Batch N
     batch_norm = nn.BatchNorm2d(C)
     batch_norm(input)
 
-&emsp;*RMS Norm*: is a simplization of Layer Norm. It's taken over the last dimensions.
+&emsp;***RMS Norm***: is a simplization of Layer Norm. It's taken over the last dimensions.
 
 Note: **register_buffer('name', tensor)**<br>
 &emsp;If you have parameters in your model, which should be saved and restored in 'state_dict', but not trained by the optimizer, you should regiseter them as buffer.
 
-As the 'momentum' in batch norm, which updates with the mean and var from mini-batch, doesn't depend on optimizer.
+&emsp;As the 'momentum' in batch norm, which updates with the mean and var from mini-batch, doesn't depend on optimizer.
 
 Note:<br>
 &emsp;Remeber to care about the dimension of mean, var, weights, bias. Make sure they can be broadcasted to the same dimension of input.
