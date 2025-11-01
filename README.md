@@ -81,8 +81,8 @@ To create a causal mask, you will need 2 helper functions - **'torch.full()'** a
 ***Add*** means residual connection, which solves the vanishing gradient problem allowing deeper model. (More detail about Residual, see (https://arxiv.org/abs/1512.03385)) Residual connection has almost become a default setting for models.
 
 ***Normalization*** is another technique used to stabilize and accelerate training process. Transformer uses **Layer Norm**.
-
 However, there are 3 main normalization methods mostly used: Layer Norm, Batch Norm, RMS Norm.<br>
+
 &emsp;*Layer Norm*: normalizes all features within each sample, which eliminates the magnitude difference between different samples but preserves the relative magnitude relationships between different features within a single sample. (Commonly used in the field of NLP)
 &emsp;&emsp;*Example:*
 
@@ -109,12 +109,12 @@ However, there are 3 main normalization methods mostly used: Layer Norm, Batch N
 &emsp;*RMS Norm*: is a simplization of Layer Norm. It's taken over the last dimensions.
 
 Note: **register_buffer('name', tensor)**
-If you have parameters in your model, which should be saved and restored in 'state_dict', but not trained by the optimizer, you should regiseter them as buffer.
+&emsp;If you have parameters in your model, which should be saved and restored in 'state_dict', but not trained by the optimizer, you should regiseter them as buffer.
 
 As the 'momentum' in batch norm, which updates with the mean and var from mini-batch, doesn't depend on optimizer.
 
 Note:
-Remeber to care about the dimension of mean, var, weights, bias. Make sure they can be broadcasted to the same dimension of input.
+&emsp;Remeber to care about the dimension of mean, var, weights, bias. Make sure they can be broadcasted to the same dimension of input.
 
 ![norm picture1](./images/norm.png "Normalization1")
 
