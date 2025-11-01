@@ -116,7 +116,7 @@ As the 'momentum' in batch norm, which updates with the mean and var from mini-b
 Note:
 &emsp;Remeber to care about the dimension of mean, var, weights, bias. Make sure they can be broadcasted to the same dimension of input.
 
-![norm picture1](./images/norm.png "Normalization1")
+![norm](./images/norm.png "Normalization1")
 
 ## Day 5: Feed-Forward 
 
