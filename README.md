@@ -118,7 +118,11 @@ Note:<br>
 
 ![norm](./images/norm.png "Normalization1")
 
-## Day 5: Feed-Forward 
+## Day 6: Feed-Forward 
+It's the main and the most obvious place where we add non-linearity(ReLU) to the model, which can give model more flexibility and make it learn non-linear relationship of those inputs.
 
+Feed-Forward operates **position-wise**, meaning it runs independently on each position(token). They won't mix in FFN. Attention mechanism is responsible for gathering all the information from all tokens in the sequence.
 
-## Day 6: Position Embedding & Input Embedding
+The output of attention layer (with shape [batch, seq_len, dimension]) is fed into the FFN. The FFN applies its **identical** weight matrices **independently** to **each** of the 'seq_len' tokens.(This is the meaning of ***Position-Wise***)
+
+## Day 7: Position Embedding & Input Embedding
