@@ -142,13 +142,14 @@ Let's think about what requirements the position embedding needs to meet.
 
 - The range must be bounded. Otherwise, the position embedding of the last word is so much larger then the first position embedding. After add with input embedding, there will inevitably be a skew in the numerical value of features.
 
-- The position embedding must contain the location information, i.e. the order of the contents.
+- The position embedding must be unique adn contains the location information, i.e. the order of the contents.
 
-- Encoding difference should not depends on the text length. If using this method, the relative relationship between two words will be diluted in long context. Such as "cute dog" in a normalized position embedding is [0.33, 0.66]. While the sentence gets longer, like "I have a cute dog", the position embedding will be [0.1, 0.2, 0.3, 0.4, 0.5]. The relative distance of same word "cute" and  "dog" in sentences with different length is different.
+- Encoding difference should not depend on the text length. If using this method, the relative relationship between two words will be diluted in long context. The model would struggle to generalize patterns learned from short sentences to long ones. Such as "cute dog" in a normalized position embedding is [0.33, 0.66]. While the sentence gets longer, like "I have a cute dog", the position embedding will be [0.1, 0.2, 0.3, 0.4, 0.5]. The relative distance of same word "cute" and  "dog" in sentences of different lengths is different.
 
-![position_embedding](https://github.com/yiranhi/transformer_from_scratch/blob/main/images/position_embdding.png)    
+![norm](https://github.com/yiranhi/transformer_from_scratch/blob/main/images/position_embedding.png)
 
-Based on those requirements above, the transformer uses the periodic function to encode position.
+Based on those requirements above, the transformer uses the periodic function to encode position. Suppose you have an input sequence of Length *L* and require the position of the 
+k^th^ object within this sequence.
 
 $$
 \begin{aligned}
@@ -158,3 +159,21 @@ P(k, 2i+1) &= \cos\left( \frac{k}{n^{2i/d}} \right)
 $$
 
 Here:
+
+- *k*: Position of an object in the input sequence, $0 \lt k \lt \frac{L}{2}$. 
+
+- *d*: Dimension of the output embedding space, $2i \le d$
+
+- *P(k, j)*: Position function for mapping a postion *k* in the input sequence to index (*k, j*) of the position matrixposition. And the author define the odd and even position with cos and sin function separately.
+
+- *n*: User-defined scalar, set to 10,000 by the author of transformer.
+
+![norm](https://github.com/yiranhi/transformer_from_scratch/blob/main/images/pm.png)
+
+This scheme for position embedding has a number of advantages:
+
+1. **Bounded Range** The sine and cosine functions have values in [-1, 1], which keeps the value of the positional encoding matrix in a normalized range.
+
+2. **Unique and Containing Order Information** As the sinusoid for each position(*k*) is different, each position has a unique embedding.
+
+3. **Relative Position Embedding is invariable** You can measure or quantify the similarity between different positions, hence enabling you to encoder the relative positions of words.
