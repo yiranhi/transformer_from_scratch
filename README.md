@@ -116,7 +116,7 @@ Note: **register_buffer('name', tensor)**<br>
 Note:<br>
 &emsp;Remeber to care about the dimension of mean, var, weights, bias. Make sure they can be broadcasted to the same dimension of input.
 
-![norm](./images/norm.png "Normalization1")
+![norm](https://github.com/yiranhi/transformer_from_scratch/blob/main/images/Norm.png "Normalization1")
 ![alt text](./images/norm.png)
 
 ## Day 6: Feed-Forward 
