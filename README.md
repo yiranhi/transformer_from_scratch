@@ -146,7 +146,7 @@ Let's think about what requirements the position embedding needs to meet.
 
 - Encoding difference should not depends on the text length. If using this method, the relative relationship between two words will be diluted in long context. Such as "cute dog" in a normalized position embedding is [0.33, 0.66]. While the sentence gets longer, like "I have a cute dog", the position embedding will be [0.1, 0.2, 0.3, 0.4, 0.5]. The relative distance of same word "cute" and  "dog" in sentences with different length is different.
 
-![position](https://github.com/yiranhi/transformer_from_scratch/blob/main/images/position_embdding.png)    
+![position_embedding](https://github.com/yiranhi/transformer_from_scratch/blob/main/images/position_embdding.png)    
 
 Based on those requirements above, the transformer uses the periodic function to encode position.
 
