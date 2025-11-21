@@ -31,6 +31,8 @@ I will try to write the code of the transformer from scratch as practice.
 &emsp;**Decoder:** 
 &emsp;&emsp;output embedding ==> position embedding ==> Masked MultiHead Attention ==> Add & Norm
              ==> MultiHead Attention ==> Add & Norm ==> Feed Forward ==> Linear ==> Softmax<br> 
+![transformer](https://github.com/yiranhi/transformer_from_scratch/blob/main/images/transformer.png)
+
 ## Day 2: MultiHeadAttention
 I tried to hand-write the **'MultiHeadAttention'** class. Not surprisingly, there are many many mistakes. However, that is the
 aim of this project.
@@ -117,7 +119,7 @@ Note:<br>
 &emsp;Remeber to care about the dimension of mean, var, weights, bias. Make sure they can be broadcasted to the same dimension of input.
 
 ![norm](https://github.com/yiranhi/transformer_from_scratch/blob/main/images/Norm.png "Normalization1")
-![alt text](./images/norm.png)
+
 
 ## Day 6: Feed-Forward 
 It's the main and the most obvious place where we add non-linearity(ReLU) to the model, which can give model more flexibility and make it learn non-linear relationship of those inputs.
@@ -126,4 +128,31 @@ Feed-Forward operates **position-wise**, meaning it runs independently on each p
 
 The output of attention layer (with shape [batch, seq_len, dimension]) is fed into the FFN. The FFN applies its **identical** weight matrices **independently** to **each** of the 'seq_len' tokens.(This is the meaning of ***Position-Wise***)
 
-## Day 7: Position Embedding & Input Embedding
+## Day 7: Input Embedding &  Position Embedding
+**Input Embedding:**
+
+Input Embedding is to transfer the input sentence into the form (vector/tensor) which the follow part of the model can handel. 
+
+The general process is: sentence == tokenizer ==> token sequence == embedding layer ==> tensor sequence
+
+**Position Embedding:**
+Since transformer does not process the sequential data (as it lacks recurrent structures), positional information are add to the input token sequence (p.s. literally "add", it's a additive operation).
+
+Let's think about what requirements the position embedding needs to meet.
+
+- The range must be bounded. Otherwise, the position embedding of the last word is so much larger then the first position embedding. After add with input embedding, there will inevitably be a skew in the numerical value of features.
+
+- The position embedding must contain the location information, i.e. the order of the contents.
+
+- Encoding difference should not depends on the text length. If using this method, the relative relationship between two words will be diluted in long context. Such as "cute dog" in a normalized position embedding is [0.33, 0.66]. While the sentence gets longer, like "I have a cute dog", the position embedding will be [0.1, 0.2, 0.3, 0.4, 0.5]. The relative distance of same word "cute" and  "dog" in sentences with different length is different.
+
+![position](https://github.com/yiranhi/transformer_from_scratch/blob/main/images/position embdding.png)    
+
+Based on those requirements above, the transformer uses the periodic function to encode position.
+
+$$
+\begin{aligned}
+P(k, 2i) &= \sin\left( \frac{k}{n^{2i/d}} \right) \\
+P(k, 2i+1) &= \cos\left( \frac{k}{n^{2i/d}} \right)
+\end{aligned}
+$$
