@@ -117,6 +117,7 @@ Note:<br>
 &emsp;Remeber to care about the dimension of mean, var, weights, bias. Make sure they can be broadcasted to the same dimension of input.
 
 ![norm](./images/norm.png "Normalization1")
+![alt text](./images/norm.png)
 
 ## Day 6: Feed-Forward 
 It's the main and the most obvious place where we add non-linearity(ReLU) to the model, which can give model more flexibility and make it learn non-linear relationship of those inputs.
