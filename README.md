@@ -133,7 +133,40 @@ The output of attention layer (with shape [batch, seq_len, dimension]) is fed in
 
 Input Embedding is to transfer the input sentence into the form (vector/tensor) which the follow part of the model can handel. 
 
-The general process is: sentence == tokenizer ==> token sequence == embedding layer ==> tensor sequence
+The general process is: sentence == tokenizer ==> token id sequence == embedding layer ==> tensor sequence
+
+Note: *The Difference between Embedding Layer & Linear Layer*
+
+&emsp; From the perspective of output, it seems like nn.Embedding and nn.Linear do the same things, i.e. project the input(token ids for nn.Embedding, input tensor for nn.Linear) into a outpu tensor.
+
+&emsp; However, nn.Embedding(num_embeddings, embedding_dim) represents a weight matrix with shape [num_embeddings, embedding_dim]. *num_embeddings* is the vocabulary's size, definig how many tokens can it transfer to tensor. *embedding_dim* represents the dimension of the transfered tensor. From this view, *nn.Embedding* is a actually a lookup table. The input is an index, and it returns the row at the corresponding index in the weight matrix.
+
+&emsp; Remerber the weight matrix of nn.Embedding is also a learnable matrix. If you are building a model from scratch, the weight matrix is initialized randomly (using a normal or uniform distribution). After training (forward pass ==> loss calculation ==> backpropagation), the random weight metrix organize themselves so that similar words end up having similar mathematical vectors. 
+
+&emsp; the class definition are different
+"""
+class EmbeddingLayer(nn.Module)
+    def __init__(self, num_embeddings, embedding_dim):
+        super().__init__()
+        self.weight = torch.nn.Parameter(torch.randn(num_embeddings, embedding_dim))
+
+    def forward(self, input):
+        return self.weight[input]
+
+class LinearLayer(nn.Module):
+    '''
+        For CPU/GPU's memory locality optimizations, the weight matrix is usually the shape of [output_dim, input_dim].
+        And the forward operation is x @ Weight.T + bias
+    '''
+    def __init__(self, input_dim, output_dim):
+        super().__init__()
+        self.weight = torch.nn.Parameter(torch.randn(output_dim, input_dim))
+        self.bias = torch.nn.Parameter(torch.randn(output_dim))
+
+    def forward(self, input):
+        return torch.matmul(input, self.weight.T) + self.bias
+"""
+
 
 **Position Embedding:**
 Since transformer does not process the sequential data (as it lacks recurrent structures), positional information are add to the input token sequence (p.s. literally "add", it's a additive operation).
@@ -177,3 +210,9 @@ This scheme for position embedding has a number of advantages:
 2. **Unique and Containing Order Information** As the sinusoid for each position(*k*) is different, each position has a unique embedding.
 
 3. **Relative Position Embedding is invariable** You can measure or quantify the similarity between different positions, hence enabling you to encoder the relative positions of words.
+
+
+## Day 8: Tokenizer
+I'd highly recommend that watching Andrej Karpathy's video ((https://www.youtube.com/watch?v=zduSFxRajkE)), which contains everything you need to know about tokenizer.
+
+The tokenizer is a completely separate object from the large language model. Training tokenizer is a completely seaprate pre-rocessing stage with its own training data (probably different from LLM training set).
